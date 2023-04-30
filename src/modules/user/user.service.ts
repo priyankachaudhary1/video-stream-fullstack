@@ -26,7 +26,6 @@ export class UserService {
   ) {}
 
   public async createUser(body: SignUpDto): Promise<IAuthResponse> {
-    console.log(body, 'body');
     const user = await this.findUserByEmail(body.email);
 
     if (user) {
@@ -35,7 +34,7 @@ export class UserService {
 
     const createUser = this.userRepository.create({
       ...body,
-      role: UserRoleEnum.USER,
+      role: UserRoleEnum.ADMIN,
     });
     const newUser = await this.userRepository.save(createUser);
 
