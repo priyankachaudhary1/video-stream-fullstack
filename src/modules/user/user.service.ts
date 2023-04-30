@@ -112,13 +112,14 @@ export class UserService {
   }
 
   private transformToUserResponse(user: UserEntity): IUserResponse {
-    const { id, name, email, role } = user;
+    const { id, name, email, role, isSuspended } = user;
 
     return {
       id,
       name,
       email,
       role,
+      isSuspended,
     };
   }
 }
