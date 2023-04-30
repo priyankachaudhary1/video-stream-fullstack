@@ -47,8 +47,9 @@ export class VideoCategoryService {
   private transformToVideoCategoryResponse(
     category: VideoCategoryEntity,
   ): IVideoCategoryReponse {
-    const { name } = category;
+    const { id, name } = category;
     return {
+      id,
       name,
     };
   }
