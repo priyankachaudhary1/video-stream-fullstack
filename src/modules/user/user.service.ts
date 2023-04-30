@@ -13,6 +13,7 @@ import { UserProfileEntity } from 'src/entities/user-profile.entity';
 import { ISuccessMessage } from 'src/common/responses';
 import { JwtService } from '@nestjs/jwt';
 import { IAuthResponse } from '../auth/responses';
+import { UserRoleEnum } from 'src/common/enum/user-role.enum';
 
 @Injectable()
 export class UserService {
@@ -25,13 +26,17 @@ export class UserService {
   ) {}
 
   public async createUser(body: SignUpDto): Promise<IAuthResponse> {
+    console.log(body, 'body');
     const user = await this.findUserByEmail(body.email);
 
     if (user) {
       throw new ConflictException('Email already exists.');
     }
 
-    const createUser = this.userRepository.create(body);
+    const createUser = this.userRepository.create({
+      ...body,
+      role: UserRoleEnum.USER,
+    });
     const newUser = await this.userRepository.save(createUser);
 
     await this.userProfileRepository.save({
@@ -49,6 +54,35 @@ export class UserService {
     return {
       accessToken,
       role,
+    };
+  }
+
+  public async findAllUsers(): Promise<IUserResponse[]> {
+    const users = await this.userRepository.find({
+      order: {
+        createdAt: 'DESC',
+      },
+    });
+
+    return users.map((user) => this.transformToUserResponse(user));
+  }
+
+  public async suspendOrReactiveUser(id: string): Promise<ISuccessMessage> {
+    const user = await this.userRepository.findOne({ where: { id } });
+
+    if (!user) {
+      return { message: 'Invalid user.' };
+    }
+
+    if (user?.isSuspended) {
+      await this.updateAccountStatus(id, false);
+      return {
+        message: 'User reactivated successfully.',
+      };
+    }
+    await this.updateAccountStatus(id, true);
+    return {
+      message: 'User suspended successfully.',
     };
   }
 
@@ -72,6 +106,10 @@ export class UserService {
     const user = await this.userRepository.findOne({ where: { id } });
 
     return this.transformToUserResponse(user);
+  }
+
+  private async updateAccountStatus(id: string, isSuspended: boolean) {
+    await this.userRepository.update({ id }, { isSuspended });
   }
 
   private transformToUserResponse(user: UserEntity): IUserResponse {

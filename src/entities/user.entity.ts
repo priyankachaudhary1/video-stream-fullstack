@@ -25,6 +25,9 @@ export class UserEntity extends CustomBaseEntity {
   @Column({ type: 'enum', enum: UserRoleEnum })
   role!: UserRoleEnum;
 
+  @Column({ type: 'boolean', default: false })
+  isSuspended: boolean;
+
   @OneToOne(() => UserProfileEntity, (userProfile) => userProfile.user)
-  userProfile?: UserProfileEntity;
+  userProfile: UserProfileEntity;
 }

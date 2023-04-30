@@ -10,7 +10,9 @@ export class UserProfileEntity extends CustomBaseEntity {
   @Column({ nullable: true })
   phoneNumber: string;
 
-  @OneToOne(() => UserEntity, (user) => user.userProfile)
+  @OneToOne(() => UserEntity, (user) => user.userProfile, {
+    onDelete: 'CASCADE',
+  })
   @JoinColumn()
   user: UserEntity;
 }
