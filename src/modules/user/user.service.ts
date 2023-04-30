@@ -34,7 +34,7 @@ export class UserService {
 
     const createUser = this.userRepository.create({
       ...body,
-      role: UserRoleEnum.ADMIN,
+      role: UserRoleEnum.USER,
     });
     const newUser = await this.userRepository.save(createUser);
 
