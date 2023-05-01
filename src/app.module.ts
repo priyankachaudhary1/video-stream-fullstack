@@ -6,6 +6,7 @@ import { AuthModule } from './modules/auth/auth.module';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { getConnectionOptions } from 'typeorm';
 import { VideoCategoryModule } from './modules/video-category/video-category.module';
+import { VideoModule } from './modules/video/video.module';
 
 @Module({
   imports: [
@@ -19,6 +20,7 @@ import { VideoCategoryModule } from './modules/video-category/video-category.mod
     AuthModule,
     UserModule,
     VideoCategoryModule,
+    VideoModule,
   ],
   controllers: [AppController],
   providers: [AppService],
