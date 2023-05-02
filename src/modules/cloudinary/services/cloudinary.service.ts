@@ -4,9 +4,9 @@ import * as toStream from 'buffer-to-stream';
 @Injectable()
 export class CloudinaryService {
   /**get public id from cloudinary url */
-  getPublicId = (imageURL) => imageURL.split('/').pop().split('.')[0];
+  getPublicId = (videoURL: string) => videoURL.split('/').pop().split('.')[0];
 
-  async uploadImage(
+  async uploadVideo(
     file: Express.Multer.File,
     folderName: string,
   ): Promise<UploadApiResponse | UploadApiErrorResponse> {
@@ -27,7 +27,9 @@ export class CloudinaryService {
     });
   }
 
-  async deleteImage(folderName, public_id) {
-    return await v2.uploader.destroy(`${folderName}/${public_id}`);
+  async deleteVideo(folderName, public_id) {
+    return await v2.uploader.destroy(`${folderName}/${public_id}`, {
+      resource_type: 'video',
+    });
   }
 }

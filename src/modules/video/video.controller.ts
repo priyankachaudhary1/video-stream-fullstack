@@ -6,17 +6,27 @@ import {
   ParseFilePipeBuilder,
   UseInterceptors,
   Get,
+  Param,
+  Delete,
+  Patch,
+  UseGuards,
+  Query,
 } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { VideoService } from './video.service';
 import { UploadVideoDto } from './dtos';
+import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
+import { RolesGuard } from '../auth/guards/roles.guard';
+import { Roles } from 'src/common/decorators/roles.decorator';
+import { UserRoleEnum } from 'src/common/enum/user-role.enum';
 
 @Controller('video')
 export class VideoController {
   constructor(private readonly videoService: VideoService) {}
 
-  //   /\.(mp4|mov|avi|mkv|flv|wmv|webm)$/i
   @Post()
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(UserRoleEnum.ADMIN)
   @UseInterceptors(
     FileInterceptor('video', {
       limits: { fileSize: 1000 * 1024 * 1024 * 1000 * 1000 },
@@ -40,7 +50,37 @@ export class VideoController {
   }
 
   @Get()
-  async getAllVideos() {
-    return await this.videoService.getAllVideos();
+  @UseGuards(JwtAuthGuard)
+  async findAllVideo() {
+    return await this.videoService.findAllVideo();
+  }
+
+  @Get(':id')
+  @UseGuards(JwtAuthGuard)
+  async findVideoById(@Param('id') id: string) {
+    return await this.videoService.findVideoById(id);
+  }
+
+  @Get('category/:categoryId')
+  @UseGuards(JwtAuthGuard)
+  async findVideoByCategory(@Param('categoryId') categoryId: string) {
+    return await this.videoService.findVideoByCategory(categoryId);
+  }
+
+  @Patch(':id')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(UserRoleEnum.ADMIN)
+  async updateVideoContent(
+    @Param('id') id: string,
+    @Body() body: UploadVideoDto,
+  ) {
+    return await this.videoService.updateVideoContent(id, body);
+  }
+
+  @Delete(':id')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(UserRoleEnum.ADMIN)
+  async deleteVideo(@Param('id') id: string) {
+    return await this.videoService.deleteVideo(id);
   }
 }
