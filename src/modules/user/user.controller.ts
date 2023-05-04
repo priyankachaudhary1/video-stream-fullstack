@@ -31,17 +31,17 @@ export class UserController {
     return await this.userService.findAllUsers();
   }
 
-  @Patch(':id')
-  @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles(UserRoleEnum.ADMIN)
-  async suspendOrReactiveUser(@Param('id') id: string) {
-    return await this.userService.suspendOrReactiveUser(id);
-  }
-
   @UseGuards(JwtAuthGuard)
   @Patch('profile')
   async updateUserProfile(@Body() body: UpdateUserProfileDto, @Req() req) {
     const { id } = req.user;
     return await this.userService.updateUserProfile(id, body);
+  }
+
+  @Patch(':id')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(UserRoleEnum.ADMIN)
+  async suspendOrReactiveUser(@Param('id') id: string) {
+    return await this.userService.suspendOrReactiveUser(id);
   }
 }
