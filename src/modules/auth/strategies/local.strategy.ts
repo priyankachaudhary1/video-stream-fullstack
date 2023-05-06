@@ -16,6 +16,11 @@ export class LocalStrategy extends PassportStrategy(Strategy) {
     if (!user) {
       throw new UnauthorizedException("Email and Password doesn't match");
     }
+    if (user.isSuspended) {
+      throw new UnauthorizedException(
+        'Your account is suspended. Please contact the administrator.',
+      );
+    }
 
     return user;
   }
