@@ -5,9 +5,14 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { UserEntity } from 'src/entities/user.entity';
 import { UserProfileEntity } from 'src/entities/user-profile.entity';
 import { JwtService } from '@nestjs/jwt';
+import { SignupOtpEntity } from 'src/entities/signupOtp.entity';
+import { CloudinaryModule } from '../cloudinary/cloudinary.module';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([UserEntity, UserProfileEntity])],
+  imports: [
+    CloudinaryModule,
+    TypeOrmModule.forFeature([UserEntity, UserProfileEntity, SignupOtpEntity]),
+  ],
   controllers: [UserController],
   providers: [UserService, JwtService],
   exports: [UserService],

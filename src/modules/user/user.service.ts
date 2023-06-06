@@ -1,19 +1,27 @@
 import {
   BadRequestException,
   ConflictException,
-  ForbiddenException,
   Injectable,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { UserEntity } from 'src/entities/user.entity';
 import { Repository } from 'typeorm';
 import { IUserResponse } from './responses';
-import { SignUpDto, UpdateUserProfileDto } from './dtos';
+import {
+  ChangePasswordDto,
+  SignUpDto,
+  UpdateAccountStatusDto,
+  UpdateUserProfileDto,
+} from './dtos';
 import { UserProfileEntity } from 'src/entities/user-profile.entity';
 import { ISuccessMessage } from 'src/common/responses';
 import { JwtService } from '@nestjs/jwt';
 import { IAuthResponse } from '../auth/responses';
 import { UserRoleEnum } from 'src/common/enum/user-role.enum';
+import { SignupOtpEntity } from 'src/entities/signupOtp.entity';
+import { differenceInHours } from 'date-fns';
+import * as bcrypt from 'bcrypt';
+import { CloudinaryService } from '../cloudinary/services/cloudinary.service';
 
 @Injectable()
 export class UserService {
@@ -22,10 +30,13 @@ export class UserService {
     private readonly userRepository: Repository<UserEntity>,
     @InjectRepository(UserProfileEntity)
     private readonly userProfileRepository: Repository<UserProfileEntity>,
+    @InjectRepository(SignupOtpEntity)
+    private readonly signupOtpRepository: Repository<SignupOtpEntity>,
     private jwtService: JwtService,
+    private readonly cloudinaryService: CloudinaryService,
   ) {}
 
-  public async createUser(body: SignUpDto): Promise<IAuthResponse> {
+  public async createUser(body: SignUpDto): Promise<ISuccessMessage> {
     const user = await this.findUserByEmail(body.email);
 
     if (user) {
@@ -42,18 +53,22 @@ export class UserService {
       user: { id: newUser.id } as UserEntity,
     });
 
-    const { id, role } = newUser;
-
-    const payload = { id, role };
-
-    const accessToken = this.jwtService.sign(payload, {
-      secret: process.env.JWT_SECRET,
-    });
-
     return {
-      accessToken,
-      role,
+      message:
+        'Your opt is sent to the email address associated with your account.',
     };
+    // const { id, role } = newUser;
+
+    // const payload = { id, role };
+
+    // const accessToken = this.jwtService.sign(payload, {
+    //   secret: process.env.JWT_SECRET,
+    // });
+
+    // return {
+    //   accessToken,
+    //   role,
+    // };
   }
 
   public async findAllUsers(): Promise<IUserResponse[]> {
@@ -64,6 +79,10 @@ export class UserService {
     });
 
     return users.map((user) => this.transformToUserResponse(user));
+  }
+
+  public async findTotalUsers(): Promise<number> {
+    return await this.userRepository.count();
   }
 
   public async suspendOrReactiveUser(id: string): Promise<ISuccessMessage> {
@@ -85,11 +104,62 @@ export class UserService {
     };
   }
 
+  public async changePassword(
+    id: string,
+    body: ChangePasswordDto,
+  ): Promise<ISuccessMessage> {
+    const { newPassword } = body;
+    const user = await this.userRepository.findOne({ where: { id } });
+
+    const comparePassword = await bcrypt.compare(newPassword, user.password);
+
+    if (comparePassword) {
+      throw new BadRequestException(
+        'New password is same as old password. Please enter a new password.',
+      );
+    }
+
+    const hashedPassword = await bcrypt.hash(newPassword, 10);
+    await this.userRepository.update(id, { password: hashedPassword });
+
+    return {
+      message: 'Password changed successfully.',
+    };
+  }
+
+  public async updateVerifyStatus(
+    body: UpdateAccountStatusDto,
+  ): Promise<IAuthResponse> {
+    const { otp } = body;
+
+    const signupOtp = await this.signupOtpRepository.findOne({
+      where: {
+        otp,
+      },
+    });
+
+    const differenceInDate = differenceInHours(new Date(), signupOtp.createdAt);
+
+    if (differenceInDate > 24) {
+      throw new BadRequestException('Otp has expired.');
+    }
+
+    return;
+  }
+
   public async updateUserProfile(
     id: string,
     body: UpdateUserProfileDto,
+    profile: Express.Multer.File,
   ): Promise<ISuccessMessage> {
-    await this.userProfileRepository.update({ user: { id } }, body);
+    const { secure_url } = await this.cloudinaryService.uploadImage(
+      profile,
+      'profile-image',
+    );
+    await this.userProfileRepository.update(
+      { user: { id } },
+      { ...body, imageUrl: secure_url },
+    );
     return { message: 'Profile updated successfully.' };
   }
 

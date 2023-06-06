@@ -59,6 +59,10 @@ export class VideoService {
     return allVideos.map((video) => this.transformToVideoResponse(video));
   }
 
+  public async findTotalVideosCount(): Promise<number> {
+    return await this.videoRepository.count();
+  }
+
   public async findVideoById(id: string): Promise<IVideoResponse> {
     const video = await this.videoRepository.findOne({
       where: { id },

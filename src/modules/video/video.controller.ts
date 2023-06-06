@@ -10,7 +10,6 @@ import {
   Delete,
   Patch,
   UseGuards,
-  Query,
 } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { VideoService } from './video.service';
@@ -65,6 +64,13 @@ export class VideoController {
   @UseGuards(JwtAuthGuard)
   async findVideoByCategory(@Param('categoryId') categoryId: string) {
     return await this.videoService.findVideoByCategory(categoryId);
+  }
+
+  @Get('total-videos')
+  @UseGuards(JwtAuthGuard)
+  @Roles(UserRoleEnum.ADMIN)
+  async findTotalVideoCount() {
+    return await this.videoService.findTotalVideosCount();
   }
 
   @Patch(':id')

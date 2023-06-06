@@ -7,6 +7,9 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { getConnectionOptions } from 'typeorm';
 import { VideoCategoryModule } from './modules/video-category/video-category.module';
 import { VideoModule } from './modules/video/video.module';
+import { FeedbackController } from './modules/feedback/feedback.controller';
+import { FeedbackModule } from './modules/feedback/feedback.module';
+import { ComplaintsModule } from './modules/complaints/complaints.module';
 
 @Module({
   imports: [
@@ -21,6 +24,8 @@ import { VideoModule } from './modules/video/video.module';
     UserModule,
     VideoCategoryModule,
     VideoModule,
+    FeedbackModule,
+    ComplaintsModule,
   ],
   controllers: [AppController],
   providers: [AppService],

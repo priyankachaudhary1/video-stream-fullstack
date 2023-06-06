@@ -28,6 +28,9 @@ export class UserEntity extends CustomBaseEntity {
   @Column({ type: 'boolean', default: false })
   isSuspended: boolean;
 
+  @Column({ type: 'boolean', default: false })
+  isVerified: boolean;
+
   @OneToOne(() => UserProfileEntity, (userProfile) => userProfile.user)
   userProfile: UserProfileEntity;
 }

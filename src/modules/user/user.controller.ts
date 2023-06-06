@@ -3,17 +3,26 @@ import {
   Controller,
   Get,
   Param,
+  ParseFilePipeBuilder,
   Patch,
   Post,
   Req,
+  UploadedFile,
   UseGuards,
+  UseInterceptors,
 } from '@nestjs/common';
 import { UserService } from './user.service';
-import { SignUpDto, UpdateUserProfileDto } from './dtos';
+import {
+  ChangePasswordDto,
+  SignUpDto,
+  UpdateAccountStatusDto,
+  UpdateUserProfileDto,
+} from './dtos';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { RolesGuard } from '../auth/guards/roles.guard';
 import { Roles } from 'src/common/decorators/roles.decorator';
 import { UserRoleEnum } from 'src/common/enum/user-role.enum';
+import { FileInterceptor } from '@nestjs/platform-express';
 
 @Controller('user')
 export class UserController {
@@ -31,11 +40,36 @@ export class UserController {
     return await this.userService.findAllUsers();
   }
 
+  @Get('total-users')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(UserRoleEnum.ADMIN)
+  async findTotalUsers() {
+    return await this.userService.findTotalUsers();
+  }
+
   @UseGuards(JwtAuthGuard)
   @Patch('profile')
-  async updateUserProfile(@Body() body: UpdateUserProfileDto, @Req() req) {
+  @UseInterceptors(FileInterceptor('profile'))
+  async updateUserProfile(
+    @Body() body: UpdateUserProfileDto,
+    @Req() req,
+    @UploadedFile(
+      new ParseFilePipeBuilder()
+        .addFileTypeValidator({
+          fileType: '(.jpg|.png|.jpeg)$',
+        })
+        .build(),
+    )
+    profile: Express.Multer.File,
+  ) {
     const { id } = req.user;
-    return await this.userService.updateUserProfile(id, body);
+    return await this.userService.updateUserProfile(id, body, profile);
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Patch('verify-account')
+  async updateVerifyStatus(@Body() body: UpdateAccountStatusDto) {
+    return await this.userService.updateVerifyStatus(body);
   }
 
   @Patch(':id')
@@ -43,5 +77,15 @@ export class UserController {
   @Roles(UserRoleEnum.ADMIN)
   async suspendOrReactiveUser(@Param('id') id: string) {
     return await this.userService.suspendOrReactiveUser(id);
+  }
+
+  @Patch('password/:id')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(UserRoleEnum.USER)
+  async changePassword(
+    @Param('id') id: string,
+    @Body() body: ChangePasswordDto,
+  ) {
+    return await this.userService.changePassword(id, body);
   }
 }
