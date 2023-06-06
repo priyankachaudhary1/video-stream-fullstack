@@ -45,8 +45,15 @@ export class FeedbackController {
   }
 
   @Delete('id')
-  @Roles(UserRoleEnum.USER, UserRoleEnum.ADMIN)
-  public async deleteCFeedback(@Param('id') id: string) {
-    return await this.feedbackService.deleteFeedback(id);
+  @Roles(UserRoleEnum.ADMIN)
+  public async deleteFeedbackByAdmin(@Param('id') id: string) {
+    return await this.feedbackService.deleteFeedbackByAdmin(id);
+  }
+
+  @Delete('id')
+  @Roles(UserRoleEnum.USER)
+  public async deleteFeedbackByUser(@Param('id') id: string, @Req() req) {
+    const userId = req.useri.id;
+    return await this.feedbackService.deleteFeedbackByUser(id, userId);
   }
 }

@@ -61,8 +61,19 @@ export class FeedbackService {
     };
   }
 
-  public async deleteFeedback(id: string): Promise<ISuccessMessage> {
+  public async deleteFeedbackByAdmin(id: string): Promise<ISuccessMessage> {
     await this.feedbackrepository.delete(id);
+
+    return {
+      message: 'Feedback deleted successfully.',
+    };
+  }
+
+  public async deleteFeedbackByUser(
+    id: string,
+    userId: string,
+  ): Promise<ISuccessMessage> {
+    await this.feedbackrepository.delete({ id, user: { id: userId } });
 
     return {
       message: 'Feedback deleted successfully.',
