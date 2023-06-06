@@ -33,7 +33,7 @@ export class ComplaintsController {
     return await this.complaintsService.findAllComplaints();
   }
 
-  @Delete('id')
+  @Delete(':id')
   @Roles(UserRoleEnum.ADMIN)
   public async deleteComplaint(@Param('id') id: string) {
     return await this.complaintsService.deleteComplaints(id);
