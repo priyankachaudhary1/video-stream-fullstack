@@ -81,6 +81,14 @@ export class UserService {
     return users.map((user) => this.transformToUserResponse(user));
   }
 
+  public async me(id: string): Promise<IUserResponse> {
+    const user = await this.userRepository.findOne({
+      where: { id },
+    });
+
+    return this.transformToUserResponse(user);
+  }
+
   public async findTotalUsers(): Promise<number> {
     return await this.userRepository.count();
   }

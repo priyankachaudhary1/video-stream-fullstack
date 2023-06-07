@@ -40,6 +40,13 @@ export class UserController {
     return await this.userService.findAllUsers();
   }
 
+  @Get(':id')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(UserRoleEnum.USER)
+  async me(@Param('id') id: string) {
+    return await this.userService.me(id);
+  }
+
   @Get('total-users')
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(UserRoleEnum.ADMIN)

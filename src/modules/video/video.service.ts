@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { ILike, Repository } from 'typeorm';
+import { Repository } from 'typeorm';
 import { VideoEntity } from 'src/entities/video.entity';
 import { UploadVideoDto } from './dtos';
 import { CloudinaryService } from '../cloudinary/services/cloudinary.service';
@@ -34,13 +34,33 @@ export class VideoService {
     return { message: 'Video uploaded successfully.' };
   }
 
-  public async findAllVideo(): Promise<IVideoResponse[]> {
+  public async findAllVideo() {
     const allVideos = await this.videoRepository.find({
       relations: { videoCategory: true },
       order: { createdAt: 'DESC' },
     });
 
-    return allVideos.map((video) => this.transformToVideoResponse(video));
+    const videos = [
+      {
+        category: '',
+        videos: [],
+      },
+    ];
+
+    const result = allVideos.reduce((acc, obj) => {
+      const categoryObj = acc.find(
+        (item) => item.category === obj.videoCategory.name,
+      );
+      if (categoryObj) {
+        categoryObj.videos.push(obj.videoUrl);
+      } else {
+        acc.push({ category: obj.videoCategory.name, videos: [obj.videoUrl] });
+      }
+      return acc;
+    }, []);
+
+    return result;
+    // return allVideos.map((video) => this.transformToVideoResponse(video));
   }
 
   public async findVideoByCategory(
