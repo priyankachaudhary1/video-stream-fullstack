@@ -208,6 +208,11 @@ export class UserService {
       );
     }
 
+    await this.userRepository.update(
+      { id: userOtp.user.id },
+      { isVerified: true },
+    );
+
     await this.signupOtpRepository.delete({
       user: { id: userOtp.user.id },
     });
