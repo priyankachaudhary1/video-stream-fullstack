@@ -7,9 +7,9 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { getConnectionOptions } from 'typeorm';
 import { VideoCategoryModule } from './modules/video-category/video-category.module';
 import { VideoModule } from './modules/video/video.module';
-import { FeedbackController } from './modules/feedback/feedback.controller';
 import { FeedbackModule } from './modules/feedback/feedback.module';
 import { ComplaintsModule } from './modules/complaints/complaints.module';
+import { MailerModule } from '@nestjs-modules/mailer';
 
 @Module({
   imports: [
@@ -19,6 +19,23 @@ import { ComplaintsModule } from './modules/complaints/complaints.module';
           autoLoadEntities: true,
           synchronize: true,
         }),
+    }),
+    MailerModule.forRootAsync({
+      useFactory: () => ({
+        transport: {
+          host: 'smtp.gmail.com',
+          service: 'Gmail',
+          port: 465,
+          secure: false,
+          auth: {
+            user: process.env.MAILDOMAIN,
+            pass: process.env.PASSWORD,
+          },
+        },
+        defaults: {
+          from: `"nest-modules" <modules@nestjs.com>`,
+        },
+      }),
     }),
     AuthModule,
     UserModule,

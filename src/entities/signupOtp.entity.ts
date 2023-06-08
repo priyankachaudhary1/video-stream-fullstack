@@ -8,8 +8,8 @@ export class SignupOtpEntity extends CustomBaseEntity {
   @Column()
   otp!: number;
 
-  @Column({ type: 'date' })
-  expiryDate!: Date;
+  @Column({ default: false })
+  isAccepted!: boolean;
 
   @OneToOne(() => UserEntity, { onDelete: 'CASCADE' })
   @JoinColumn()

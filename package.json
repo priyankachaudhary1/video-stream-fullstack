@@ -22,6 +22,7 @@
     "seed:run": "ts-node ./node_modules/typeorm-seeding/dist/cli.js seed"
   },
   "dependencies": {
+    "@nestjs-modules/mailer": "^1.8.1",
     "@nestjs/common": "^9.0.0",
     "@nestjs/core": "^9.0.0",
     "@nestjs/jwt": "^10.0.3",
@@ -36,6 +37,8 @@
     "class-validator": "^0.14.0",
     "cloudinary": "^1.36.2",
     "date-fns": "^2.30.0",
+    "handlebars": "^4.7.7",
+    "nodemailer": "^6.9.3",
     "passport": "^0.6.0",
     "passport-jwt": "^4.0.1",
     "passport-local": "^1.0.0",

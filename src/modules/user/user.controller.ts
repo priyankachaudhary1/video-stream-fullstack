@@ -14,6 +14,7 @@ import {
 import { UserService } from './user.service';
 import {
   ChangePasswordDto,
+  ResendOtpDto,
   SignUpDto,
   UpdateAccountStatusDto,
   UpdateUserProfileDto,
@@ -31,6 +32,11 @@ export class UserController {
   @Post()
   async createUser(@Body() body: SignUpDto) {
     return await this.userService.createUser(body);
+  }
+
+  @Post('resendOtp')
+  async resendOtp(@Body() body: ResendOtpDto) {
+    return await this.userService.resendOtp(body);
   }
 
   @Get()
@@ -73,10 +79,9 @@ export class UserController {
     return await this.userService.updateUserProfile(id, body, profile);
   }
 
-  @UseGuards(JwtAuthGuard)
   @Patch('verify-account')
-  async updateVerifyStatus(@Body() body: UpdateAccountStatusDto) {
-    return await this.userService.updateVerifyStatus(body);
+  async verifyOtp(@Body() body: UpdateAccountStatusDto) {
+    return await this.userService.verifyOtp(body);
   }
 
   @Patch(':id')

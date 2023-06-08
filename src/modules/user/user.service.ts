@@ -9,6 +9,7 @@ import { Repository } from 'typeorm';
 import { IUserResponse } from './responses';
 import {
   ChangePasswordDto,
+  ResendOtpDto,
   SignUpDto,
   UpdateAccountStatusDto,
   UpdateUserProfileDto,
@@ -19,9 +20,10 @@ import { JwtService } from '@nestjs/jwt';
 import { IAuthResponse } from '../auth/responses';
 import { UserRoleEnum } from 'src/common/enum/user-role.enum';
 import { SignupOtpEntity } from 'src/entities/signupOtp.entity';
-import { differenceInHours } from 'date-fns';
+import { differenceInHours, differenceInMinutes } from 'date-fns';
 import * as bcrypt from 'bcrypt';
 import { CloudinaryService } from '../cloudinary/services/cloudinary.service';
+import { MailerService } from '@nestjs-modules/mailer';
 
 @Injectable()
 export class UserService {
@@ -34,6 +36,7 @@ export class UserService {
     private readonly signupOtpRepository: Repository<SignupOtpEntity>,
     private jwtService: JwtService,
     private readonly cloudinaryService: CloudinaryService,
+    private mailService: MailerService,
   ) {}
 
   public async createUser(body: SignUpDto): Promise<ISuccessMessage> {
@@ -53,6 +56,20 @@ export class UserService {
       user: { id: newUser.id } as UserEntity,
     });
 
+    const otp = this.generateOtp(8);
+
+    await this.signupOtpRepository.save({
+      otp,
+      user: { id: newUser.id },
+    });
+
+    await this.mailService.sendMail({
+      to: body.email,
+      from: 'no-reply@gmail.com',
+      subject: 'Signup OTP',
+      text: `You'r signup otp is: ${otp}`,
+    });
+
     return {
       message:
         'Your opt is sent to the email address associated with your account.',
@@ -69,6 +86,35 @@ export class UserService {
     //   accessToken,
     //   role,
     // };
+  }
+
+  public async resendOtp(body: ResendOtpDto): Promise<ISuccessMessage> {
+    const user = await this.userRepository.findOne({
+      where: { email: body.email },
+    });
+
+    await this.signupOtpRepository.delete({
+      user: { id: user.id },
+    });
+
+    const otp = this.generateOtp(8);
+
+    await this.signupOtpRepository.save({
+      otp,
+      user: { id: user.id },
+    });
+
+    await this.mailService.sendMail({
+      to: body.email,
+      from: 'no-reply@gmail.com',
+      subject: 'Signup OTP',
+      text: `You'r signup otp is: ${otp}`,
+    });
+
+    return {
+      message:
+        'Your opt is sent to the email address associated with your account.',
+    };
   }
 
   public async findAllUsers(): Promise<IUserResponse[]> {
@@ -135,24 +181,49 @@ export class UserService {
     };
   }
 
-  public async updateVerifyStatus(
-    body: UpdateAccountStatusDto,
-  ): Promise<IAuthResponse> {
+  public async verifyOtp(body: UpdateAccountStatusDto): Promise<IAuthResponse> {
     const { otp } = body;
 
-    const signupOtp = await this.signupOtpRepository.findOne({
+    const userOtp = await this.signupOtpRepository.findOne({
       where: {
         otp,
       },
+      relations: {
+        user: true,
+      },
     });
 
-    const differenceInDate = differenceInHours(new Date(), signupOtp.createdAt);
-
-    if (differenceInDate > 24) {
-      throw new BadRequestException('Otp has expired.');
+    if (!userOtp) {
+      throw new BadRequestException('Invalid opt.');
     }
 
-    return;
+    const timeDifferenceInDate = differenceInMinutes(
+      new Date(),
+      userOtp.createdAt,
+    );
+
+    if (timeDifferenceInDate > 10) {
+      throw new BadRequestException(
+        'Otp has expired. Please resend the request.',
+      );
+    }
+
+    await this.signupOtpRepository.delete({
+      user: { id: userOtp.user.id },
+    });
+
+    const { id, role } = userOtp.user;
+
+    const payload = { id, role };
+
+    const accessToken = this.jwtService.sign(payload, {
+      secret: process.env.JWT_SECRET,
+    });
+
+    return {
+      accessToken,
+      role,
+    };
   }
 
   public async updateUserProfile(
@@ -187,6 +258,18 @@ export class UserService {
 
   private async updateAccountStatus(id: string, isSuspended: boolean) {
     await this.userRepository.update({ id }, { isSuspended });
+  }
+
+  private generateOtp(length: number): number {
+    const chars = '0123456789';
+    let otp = '';
+
+    for (let i = 0; i < length; i++) {
+      const randomIndex = Math.floor(Math.random() * chars.length);
+      otp += chars[randomIndex];
+    }
+
+    return parseInt(otp);
   }
 
   private transformToUserResponse(user: UserEntity): IUserResponse {
