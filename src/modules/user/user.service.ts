@@ -130,6 +130,9 @@ export class UserService {
   public async me(id: string): Promise<IUserResponse> {
     const user = await this.userRepository.findOne({
       where: { id },
+      relations: {
+        userProfile: true,
+      },
     });
 
     return this.transformToUserResponse(user);
@@ -225,10 +228,7 @@ export class UserService {
       secret: process.env.JWT_SECRET,
     });
 
-    return {
-      accessToken,
-      role,
-    };
+    return { id, accessToken, role };
   }
 
   public async updateUserProfile(
@@ -286,6 +286,9 @@ export class UserService {
       email,
       role,
       isSuspended,
+      profile: user.userProfile?.imageUrl,
+      address: user.userProfile?.address,
+      phoneNumber: user.userProfile?.phoneNumber,
     };
   }
 }

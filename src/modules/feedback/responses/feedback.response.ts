@@ -3,4 +3,5 @@ export class IFeedbackresponse {
   title: string;
   feedBack: string;
   name: string;
+  profile: string;
 }

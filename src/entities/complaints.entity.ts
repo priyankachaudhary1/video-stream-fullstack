@@ -18,5 +18,5 @@ export class ComplaintsEntity extends CustomBaseEntity {
 
   @ManyToOne(() => VideoEntity, { onDelete: 'CASCADE' })
   @JoinColumn()
-  videpo: VideoEntity;
+  video: VideoEntity;
 }

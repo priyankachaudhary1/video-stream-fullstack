@@ -40,21 +40,37 @@ export class VideoService {
       order: { createdAt: 'DESC' },
     });
 
-    const videos = [
-      {
-        category: '',
-        videos: [],
-      },
-    ];
-
     const result = allVideos.reduce((acc, obj) => {
       const categoryObj = acc.find(
         (item) => item.category === obj.videoCategory.name,
       );
       if (categoryObj) {
-        categoryObj.videos.push(obj.videoUrl);
+        categoryObj.videos.push({
+          id: obj.id,
+          title: obj.title,
+          description: obj.description,
+          videoUrl: obj.videoUrl,
+          categoryId: {
+            id: obj.videoCategory.id,
+            name: obj.videoCategory.name,
+          },
+        });
       } else {
-        acc.push({ category: obj.videoCategory.name, videos: [obj.videoUrl] });
+        acc.push({
+          category: obj.videoCategory.name,
+          videos: [
+            {
+              id: obj.id,
+              videoUrl: obj.videoUrl,
+              title: obj.title,
+              description: obj.description,
+              categoryId: {
+                id: obj.videoCategory.id,
+                name: obj.videoCategory.name,
+              },
+            },
+          ],
+        });
       }
       return acc;
     }, []);

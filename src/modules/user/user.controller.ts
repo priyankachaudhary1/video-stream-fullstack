@@ -34,7 +34,7 @@ export class UserController {
     return await this.userService.createUser(body);
   }
 
-  @Post('resendOtp')
+  @Patch('resendOtp')
   async resendOtp(@Body() body: ResendOtpDto) {
     return await this.userService.resendOtp(body);
   }
@@ -46,18 +46,19 @@ export class UserController {
     return await this.userService.findAllUsers();
   }
 
-  @Get(':id')
-  @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles(UserRoleEnum.USER)
-  async me(@Param('id') id: string) {
-    return await this.userService.me(id);
-  }
-
   @Get('total-users')
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(UserRoleEnum.ADMIN)
   async findTotalUsers() {
     return await this.userService.findTotalUsers();
+  }
+
+  @Get('me')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(UserRoleEnum.USER)
+  async me(@Req() req) {
+    const userId = req.user.id;
+    return await this.userService.me(userId);
   }
 
   @UseGuards(JwtAuthGuard)
@@ -79,9 +80,17 @@ export class UserController {
     return await this.userService.updateUserProfile(id, body, profile);
   }
 
-  @Patch('verify-account')
+  @Patch('verify-otp')
   async verifyOtp(@Body() body: UpdateAccountStatusDto) {
     return await this.userService.verifyOtp(body);
+  }
+
+  @Patch('password')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(UserRoleEnum.USER)
+  async changePassword(@Body() body: ChangePasswordDto, @Req() req) {
+    const userId = req.user.id;
+    return await this.userService.changePassword(userId, body);
   }
 
   @Patch(':id')
@@ -89,15 +98,5 @@ export class UserController {
   @Roles(UserRoleEnum.ADMIN)
   async suspendOrReactiveUser(@Param('id') id: string) {
     return await this.userService.suspendOrReactiveUser(id);
-  }
-
-  @Patch('password/:id')
-  @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles(UserRoleEnum.USER)
-  async changePassword(
-    @Param('id') id: string,
-    @Body() body: ChangePasswordDto,
-  ) {
-    return await this.userService.changePassword(id, body);
   }
 }

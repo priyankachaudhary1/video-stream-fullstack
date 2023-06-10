@@ -3,4 +3,5 @@ export class IComplaintsresponse {
   title: string;
   complaint: string;
   name: string;
+  profile: string;
 }

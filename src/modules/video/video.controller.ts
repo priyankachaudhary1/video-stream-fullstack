@@ -54,10 +54,11 @@ export class VideoController {
     return await this.videoService.findAllVideo();
   }
 
-  @Get(':id')
-  @UseGuards(JwtAuthGuard)
-  async findVideoById(@Param('id') id: string) {
-    return await this.videoService.findVideoById(id);
+  @Get('total-videos')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(UserRoleEnum.ADMIN)
+  async findTotalVideoCount() {
+    return await this.videoService.findTotalVideosCount();
   }
 
   @Get('category/:categoryId')
@@ -66,11 +67,10 @@ export class VideoController {
     return await this.videoService.findVideoByCategory(categoryId);
   }
 
-  @Get('total-videos')
+  @Get(':id')
   @UseGuards(JwtAuthGuard)
-  @Roles(UserRoleEnum.ADMIN)
-  async findTotalVideoCount() {
-    return await this.videoService.findTotalVideosCount();
+  async findVideoById(@Param('id') id: string) {
+    return await this.videoService.findVideoById(id);
   }
 
   @Patch(':id')

@@ -38,9 +38,6 @@ export class AuthService {
       secret: process.env.JWT_SECRET,
     });
 
-    return {
-      accessToken,
-      role,
-    };
+    return { id, accessToken, role };
   }
 }

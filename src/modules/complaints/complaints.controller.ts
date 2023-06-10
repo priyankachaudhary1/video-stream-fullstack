@@ -28,9 +28,9 @@ export class ComplaintsController {
     return await this.complaintsService.createComplaints(userId, body);
   }
 
-  @Get()
-  public async findAllComplaints() {
-    return await this.complaintsService.findAllComplaints();
+  @Get(':videoId')
+  public async findAllComplaints(@Param('videoId') videoId: string) {
+    return await this.complaintsService.findAllComplaints(videoId);
   }
 
   @Delete(':id')

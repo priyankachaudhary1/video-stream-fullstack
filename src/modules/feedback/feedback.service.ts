@@ -31,9 +31,10 @@ export class FeedbackService {
     };
   }
 
-  public async findAllFeedback(): Promise<IFeedbackresponse[]> {
+  public async findAllFeedback(videoId: string): Promise<IFeedbackresponse[]> {
     const allFeedback = await this.feedbackrepository.find({
-      relations: { user: true },
+      where: { video: { id: videoId } },
+      relations: { user: { userProfile: true } },
     });
 
     return allFeedback.map((feedback) =>
@@ -87,6 +88,6 @@ export class FeedbackService {
 
     const { name } = user;
 
-    return { id, feedBack, title, name };
+    return { id, feedBack, title, name, profile: user.userProfile?.imageUrl };
   }
 }

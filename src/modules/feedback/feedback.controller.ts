@@ -28,9 +28,9 @@ export class FeedbackController {
     return await this.feedbackService.createFeedback(userId, body);
   }
 
-  @Get()
-  public async findAllFeedbacks() {
-    return await this.feedbackService.findAllFeedback();
+  @Get(':videoId')
+  public async findAllFeedbacks(@Param('videoId') videoId: string) {
+    return await this.feedbackService.findAllFeedback(videoId);
   }
 
   @Patch(':id')

@@ -31,9 +31,12 @@ export class ComplaintsService {
     };
   }
 
-  public async findAllComplaints(): Promise<IComplaintsresponse[]> {
+  public async findAllComplaints(
+    videoId: string,
+  ): Promise<IComplaintsresponse[]> {
     const allFeedback = await this.complaintsrepository.find({
-      relations: { user: true },
+      where: { video: { id: videoId } },
+      relations: { user: { userProfile: true } },
     });
 
     return allFeedback.map((complaints) =>
@@ -56,6 +59,6 @@ export class ComplaintsService {
 
     const { name } = user;
 
-    return { id, complaint, title, name };
+    return { id, complaint, title, name, profile: user.userProfile?.imageUrl };
   }
 }

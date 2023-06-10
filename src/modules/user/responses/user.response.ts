@@ -6,4 +6,7 @@ export interface IUserResponse {
   email: string;
   role: UserRoleEnum;
   isSuspended: boolean;
+  profile?: string;
+  address?: string;
+  phoneNumber?: string;
 }
