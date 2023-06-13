@@ -54,8 +54,7 @@ export class UserController {
   }
 
   @Get('me')
-  @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles(UserRoleEnum.USER)
+  @UseGuards(JwtAuthGuard)
   async me(@Req() req) {
     const userId = req.user.id;
     return await this.userService.me(userId);
