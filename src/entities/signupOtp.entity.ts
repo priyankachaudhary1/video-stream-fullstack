@@ -6,7 +6,7 @@ import { UserEntity } from './user.entity';
 @Entity()
 export class SignupOtpEntity extends CustomBaseEntity {
   @Column()
-  otp!: number;
+  otp!: string;
 
   @Column({ default: false })
   isAccepted!: boolean;

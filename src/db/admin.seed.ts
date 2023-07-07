@@ -10,7 +10,7 @@ export default class InitialDatabaseSeed implements Seeder {
       email: 'admin@gmail.com',
       password: 'admin',
       role: UserRoleEnum.ADMIN,
-      isActive: true,
+      isVerified: true
     };
     console.log('seed here');
 

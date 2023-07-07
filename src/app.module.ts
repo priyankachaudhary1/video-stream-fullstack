@@ -10,6 +10,7 @@ import { VideoModule } from './modules/video/video.module';
 import { FeedbackModule } from './modules/feedback/feedback.module';
 import { ComplaintsModule } from './modules/complaints/complaints.module';
 import { MailerModule } from '@nestjs-modules/mailer';
+import { GameScheduleModule } from './modules/game-schedule/game-schedule.module';
 
 @Module({
   imports: [
@@ -43,6 +44,7 @@ import { MailerModule } from '@nestjs-modules/mailer';
     VideoModule,
     FeedbackModule,
     ComplaintsModule,
+    GameScheduleModule,
   ],
   controllers: [AppController],
   providers: [AppService],

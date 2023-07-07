@@ -9,6 +9,7 @@ import { Repository } from 'typeorm';
 import { IUserResponse } from './responses';
 import {
   ChangePasswordDto,
+  ForgotPasswordDto,
   ResendOtpDto,
   SignUpDto,
   UpdateAccountStatusDto,
@@ -20,7 +21,7 @@ import { JwtService } from '@nestjs/jwt';
 import { IAuthResponse } from '../auth/responses';
 import { UserRoleEnum } from 'src/common/enum/user-role.enum';
 import { SignupOtpEntity } from 'src/entities/signupOtp.entity';
-import { differenceInHours, differenceInMinutes } from 'date-fns';
+import { differenceInMinutes } from 'date-fns';
 import * as bcrypt from 'bcrypt';
 import { CloudinaryService } from '../cloudinary/services/cloudinary.service';
 import { MailerService } from '@nestjs-modules/mailer';
@@ -185,6 +186,7 @@ export class UserService {
   }
 
   public async verifyOtp(body: UpdateAccountStatusDto): Promise<IAuthResponse> {
+    console.log('body', body);
     const { otp } = body;
 
     const userOtp = await this.signupOtpRepository.findOne({
@@ -201,11 +203,11 @@ export class UserService {
     }
 
     const timeDifferenceInDate = differenceInMinutes(
-      new Date(),
-      userOtp.createdAt,
+      new Date(Date.now()),
+      new Date(userOtp.createdAt),
     );
 
-    if (timeDifferenceInDate > 10) {
+    if (timeDifferenceInDate > 1000) {
       throw new BadRequestException(
         'Otp has expired. Please resend the request.',
       );
@@ -247,6 +249,33 @@ export class UserService {
     return { message: 'Profile updated successfully.' };
   }
 
+  public async forgotPassword(
+    body: ForgotPasswordDto,
+  ): Promise<ISuccessMessage> {
+    const { email } = body;
+
+    const user = await this.userRepository.findOne({ where: { email } });
+
+    if (!user) {
+      return { message: 'New password has been sent to your email.' };
+    }
+
+    const randomPassword = this.generateRandomPassword();
+
+    await this.mailService.sendMail({
+      to: body.email,
+      from: 'no-reply@gmail.com',
+      subject: 'Changed Password',
+      text: `Your new password is:${randomPassword}. Please change you password after login.`,
+    });
+
+    await this.userRepository.update(user.id, {
+      password: await bcrypt.hash(randomPassword, 10),
+    });
+
+    return { message: 'New password has been sent to your email.' };
+  }
+
   public async findUserByEmail(email: string): Promise<UserEntity> {
     return await this.userRepository.findOne({ where: { email } });
   }
@@ -265,7 +294,7 @@ export class UserService {
     await this.userRepository.update({ id }, { isSuspended });
   }
 
-  private generateOtp(length: number): number {
+  private generateOtp(length: number): string {
     const chars = '0123456789';
     let otp = '';
 
@@ -274,7 +303,11 @@ export class UserService {
       otp += chars[randomIndex];
     }
 
-    return parseInt(otp);
+    return otp;
+  }
+
+  private generateRandomPassword(): string {
+    return Math.random().toString(36).slice(-8);
   }
 
   private transformToUserResponse(user: UserEntity): IUserResponse {

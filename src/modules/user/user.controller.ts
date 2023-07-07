@@ -14,6 +14,7 @@ import {
 import { UserService } from './user.service';
 import {
   ChangePasswordDto,
+  ForgotPasswordDto,
   ResendOtpDto,
   SignUpDto,
   UpdateAccountStatusDto,
@@ -90,6 +91,11 @@ export class UserController {
   async changePassword(@Body() body: ChangePasswordDto, @Req() req) {
     const userId = req.user.id;
     return await this.userService.changePassword(userId, body);
+  }
+
+  @Patch('forgot-password')
+  async forgotPassword(@Body() body: ForgotPasswordDto) {
+    return await this.userService.forgotPassword(body);
   }
 
   @Patch(':id')
